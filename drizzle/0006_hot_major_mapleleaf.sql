@@ -1,0 +1,1 @@
+ALTER TABLE `beta_sessions` ADD `snapshot` text;

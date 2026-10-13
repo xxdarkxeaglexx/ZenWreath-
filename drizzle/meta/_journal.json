@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791588926625,
+      "tag": "0000_glorious_kylun",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791590353920,
+      "tag": "0001_amazing_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791591985343,
+      "tag": "0002_freezing_speedball",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791627204694,
+      "tag": "0003_clean_maginty",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791766500000,
+      "tag": "0004_support_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791839479547,
+      "tag": "0005_smart_sister_grimm",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791839741486,
+      "tag": "0006_hot_major_mapleleaf",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import vm from 'node:vm';import {readFileSync} from 'node:fs';
+let warnings=0,images=0;const gradient={addColorStop(n,color){assert(n>=0&&n<=1);assert.equal(typeof color,'string')}};const canvas=new Proxy({drawImage(stamp,x,y,w,h){assert(stamp.width===w*3||stamp.width===w*2);assert(stamp.height===h*3||stamp.height===h*2);images++},createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,arc(x,y,r){assert(r>=0);assert([x,y,r].every(Number.isFinite));if(r===70)warnings++}},{get(o,k){return k in o?o[k]:(...args)=>{for(const a of args)if(typeof a==='number')assert(Number.isFinite(a),'Finite model coordinates')} }});
+class Stamp{constructor(w,h){this.width=w;this.height=h}getContext(){return canvas}}
+const c=vm.createContext({ctx:canvas,OffscreenCanvas:Stamp,Map,Math,DEPTH_PITCH:.82,renderQuality:3,anim:2,s:{chapter:0,player:{x:80,y:40}},paintWildEnemy(){},depthShade(color,amount){const n=parseInt(color.slice(1),16);return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(Math.max(0,Math.min(255,v+amount))).toString(16).padStart(2,'0')).join('')},depthShadow(){},upright(x,y,fn){fn()},bossShielded:()=>false,enemyReach:()=>70,enemyHealthFraction:()=>.5,depthCaption(){},selectedEnemy:()=>null,hardMode:()=>true,hardBossEnraged:()=>true,ENEMY_BOOK:Object.fromEntries(['wisp','slime','thorn','beetle','moth','spriggan','crab','wolf','toad','shroom'].map(type=>[type,{name:type}]))});
+vm.runInContext(readFileSync('public/lifelike-enemies.js','utf8'),c);
+Object.assign(c,{REALM_GEAR:Array.from({length:5},()=>({color:'#b4c3a1'})),paintKeeperDetails(){},paintKeeperEquipment(){}});
+vm.runInContext(readFileSync('public/war-forged.js','utf8'),c);
+Object.assign(c,{depthEllipse(){},depthGround:()=>[],outsideWorld:()=>true,paintNaturalWater(){},waterContours:()=>[],roundedWaterPath(){},paintVillageHouse(){},rpgStats:()=>({weaponKey:'spear'}),equippedWeapon:()=>({style:'spear'}),keeperWeaponPose:()=>({hand:{x:3,y:4},bladeAngle:.3}),renderPitch:()=>.72,view:{left:0,top:0,width:640,height:360,zoom:1}});
+vm.runInContext(readFileSync('public/studio-materials.js','utf8'),c);
+for(const hard of[false,true]){c.hardMode=()=>hard;for(const quality of[3,1.5]){c.renderQuality=quality;for(const type of Object.keys(c.ENEMY_BOOK))for(const phase of['chase','windup','recover']){c.depthEnemy({type,x:10,y:20,hp:2,maxHp:4,phase:.5,tactic:{phase,angle:.2}})}for(let ch=0;ch<5;ch++){c.s.chapter=ch;for(const phase of['chase','windup','recover'])c.depthEnemy({type:'boss',name:'Boss',x:10,y:20,hp:2,maxHp:4,phase:.5,tactic:{phase,angle:.2}})}}
+}
+assert.equal(warnings,60,'Every windup draws exactly one unchanged combat-radius warning');assert(images>100);assert(vm.runInContext('faunaModels.size',c)<=36,'Bounded high resolution model cache');
+console.log('PASS: all species and realm bosses render chase/windup/recovery at both quality levels; finite geometry; unchanged 70-unit warning radius; bounded 2x/3x cache.');
+
+c.paintVillageHouse(canvas,'inn');c.waterContours=()=>[{}];c.paintNaturalWater([[0,2,2],[0,2,0]],0,42);c.depthGround([[0,0],[0,0]],0,42);c.paintKeeperEquipment(canvas,{},'front',0,{rpgWeapon:'spear'});
+console.log('PASS: enhanced material lighting, contact shadows, house highlights, clipped water reflections and weapon glints render finite geometry with original combat warnings.');

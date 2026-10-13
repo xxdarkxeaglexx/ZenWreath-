@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import ts from 'typescript';
+const source=ts.transpileModule(readFileSync('server/beta.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;const {handleBeta}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const sql=new DatabaseSync(':memory:');sql.exec(readFileSync('drizzle/0005_smart_sister_grimm.sql','utf8').replaceAll('--> statement-breakpoint',''));sql.exec(readFileSync('drizzle/0006_hot_major_mapleleaf.sql','utf8'));
+const db={prepare(s){let args=[];const stmt=sql.prepare(s);const q={bind(...a){args=a;return q},async first(){return stmt.get(...args)||null},async all(){return {results:stmt.all(...args)}},async run(){return stmt.run(...args)}};return q},async batch(qs){return Promise.all(qs.map(q=>q.run()))}};
+const base={device:crypto.randomUUID(),session:crypto.randomUUID(),role:'volunteer',accepted:true,termsVersion:'2026-10-12',name:'Tester',trackingVersion:'2026-10-12-beta-tracking-v2',snapshot:{realm:'Mosswood',level:5,health:10,status:'playing',privateJournal:'never collect'}};
+const post=(b,user=null)=>handleBeta(new Request('https://grove.test/api/beta',{method:'POST',headers:{Origin:'https://grove.test'},body:JSON.stringify({...base,...b})}),user,db);
+assert.equal((await post({action:'start',accepted:false})).status,400);
+assert.equal((await post({action:'start'})).status,200);assert.equal((await post({action:'start'})).status,200);
+assert.equal(sql.prepare('SELECT COUNT(*) n FROM beta_testers').get().n,1);assert.equal(sql.prepare('SELECT COUNT(*) n FROM beta_sessions').get().n,1);
+assert.equal((await post({action:'feedback',rating:5,category:'opinion',message:'Beautiful little world.'})).status,200);
+assert.equal((await post({action:'feedback',rating:6,category:'opinion',message:'Test'})).status,400);
+assert.equal((await handleBeta(new Request('https://grove.test/api/beta'),null,db)).status,403);
+assert.equal((await handleBeta(new Request('https://grove.test/api/beta'),{email:'other@example.com',userId:'other'},db)).status,403);
+const report=await (await handleBeta(new Request('https://grove.test/api/beta'),{email:'xxdarkxeaglexx@gmail.com',userId:'owner'},db)).json();assert.equal(report.stats.testers,1);assert.equal(report.activity[0].snapshot.level,5);assert.equal(report.activity[0].snapshot.privateJournal,undefined);assert.equal(report.activity[0].online,true);assert.equal(report.stats.sessions,1);assert.equal(report.stats.average_rating,5);assert.equal(report.feedback[0].message,'Beautiful little world.');
+const token='test-service-token';const hash=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))).toString('hex');assert.equal((await handleBeta(new Request('https://grove.test/api/beta',{headers:{'X-Beta-Report-Access':token}}),null,db,hash)).status,200);
+console.log('PASS: durable tester/session deduplication, consent validation, private feedback, rating validation, owner and service report authorization.');

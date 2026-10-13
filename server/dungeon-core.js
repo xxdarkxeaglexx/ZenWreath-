@@ -1,0 +1,33 @@
+import {ENEMY_BOOK} from './enemy-core.js';
+export const DUNGEON_VERSION=2;
+export const DUNGEON_THEMES=[
+ {name:'Knucklewarren',shape:'cavern',roster:['spriggan','wolf','beetle','thorn','shroom'],floor:'#354839',accent:'#a9c783'},
+ {name:'Brinespire Sump',shape:'vault',roster:['crab','toad','slime','wisp','thorn'],floor:'#2d4850',accent:'#9adbe3'},
+ {name:'Bellscar Underworks',shape:'citadel',roster:['thorn','beetle','wolf','spriggan'],floor:'#504b3d',accent:'#e4c889'},
+ {name:'Veil Ossuary',shape:'crypt',roster:['moth','wisp','shroom','thorn','wolf'],floor:'#46384f',accent:'#d6b7ea'},
+ {name:'Last Ember Keep',shape:'sanctum',roster:['thorn','wolf','beetle','moth','spriggan'],floor:'#534036',accent:'#efb379'}
+];
+export function dungeonRandom(seed){let a=seed>>>0;return()=>{a+=0x6D2B79F5;let t=Math.imul(a^a>>>15,1|a);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
+export function dungeonExit(game){return game?.area==='dungeon'&&game.dungeon?.exit?game.dungeon.exit:{x:144,y:320}}
+export function dungeonEntrance(game){return game?.area==='dungeon'&&game.dungeon?.entry?game.dungeon.entry:{x:144,y:320}}
+export function dungeonFor(seed,ch,level=1){
+ level=Math.max(1,Math.min(1e9,Math.floor(Number(level)||1)));const tier=Math.min(8,Math.floor((level-1)/8)),theme=DUNGEON_THEMES[ch],r=dungeonRandom(seed+ch*12011+tier*65537+431),width=[62,70,68, 60,78][ch]+Math.min(8,tier*2),height=[48,52,50,58,54][ch],tiles=Array.from({length:height},()=>Array(width).fill(1));
+ const carve=(x,y,w=1,h=1)=>{for(let yy=Math.floor(y);yy<y+h;yy++)for(let xx=Math.floor(x);xx<x+w;xx++)if(xx>0&&yy>0&&xx<width-1&&yy<height-1)tiles[yy][xx]=0};
+ const center=p=>({x:Math.floor(p.x),y:Math.floor(p.y)}),room=(p,entry=false)=>{const rx=entry?2+Math.floor(r()*2):3+Math.floor(r()*3),ry=entry?3:3+Math.floor(r()*3);for(let dy=-ry;dy<=ry;dy++)for(let dx=-rx;dx<=rx;dx++){const hit=ch===2||ch===4?true:ch===3?Math.abs(dx)/rx+Math.abs(dy)/ry<1.35:dx*dx/(rx*rx)+dy*dy/(ry*ry)<1.1;if(hit)carve(p.x+dx,p.y+dy)}return {...p,rx,ry}};
+ const side=Math.floor(r()*4),entryTile=center(side===0?{x:6,y:8+r()*(height-16)}:side===1?{x:width-7,y:8+r()*(height-16)}:side===2?{x:9+r()*(width-18),y:6}:{x:9+r()*(width-18),y:height-7});const rooms=[room(entryTile,true)],count=8+Math.min(8,tier)+Math.floor(r()*3);
+ for(let i=0;i<count;i++){let p;if(ch===2){p={x:13+(i%4)*(width-26)/3+(r()-.5)*3,y:12+Math.floor(i/4)*(height-24)/Math.max(1,Math.ceil(count/4)-1)+(r()-.5)*3}}else if(ch===3){const a=i/count*Math.PI*2+.3;p={x:width/2+Math.cos(a)*(width*.32)+(r()-.5)*4,y:height/2+Math.sin(a)*(height*.32)+(r()-.5)*4}}else if(ch===1){p={x:12+(i%2)*(width-24)+(r()-.5)*3,y:9+Math.floor(i/2)*(height-18)/Math.max(1,Math.ceil(count/2)-1)}}else if(ch===4){p={x:9+i*(width-18)/(count-1),y:height/2+Math.sin(i*1.8)*height*.23+(r()-.5)*5}}else p={x:9+r()*(width-18),y:9+r()*(height-18)};p=center(p);rooms.push(room(p))}
+ const join=(a,b)=>{const width=ch===4?3:2;let x=a.x,y=a.y;carve(x-1,y-1,3,3);let guard=0;while((x!==b.x||y!==b.y)&&guard++<250){if(x!==b.x&&(y===b.y||r()<.55))x+=Math.sign(b.x-x);else y+=Math.sign(b.y-y);carve(x,y,width,width)}};
+ for(let i=1;i<rooms.length;i++){const p=rooms[i],prior=ch===0?rooms.slice(0,i).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0]:rooms[i-1];join(prior,p)}if(ch===1||ch===2||ch===3)for(let i=2;i<rooms.length;i+=3)join(rooms[i],rooms[Math.max(0,i-2)]);
+ // Obstacles vary by realm. Reconnect the arena after adding pools / pillars.
+ if(ch===1)for(const p of rooms.slice(2))if(r()<.7)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(tiles[p.y+dy]?.[p.x+dx]===0)tiles[p.y+dy][p.x+dx]=2;
+ if(ch===2||ch===4)for(const p of rooms.slice(1))for(const dx of[-2,2])if(r()<.7&&tiles[p.y-1]?.[p.x+dx]===0)tiles[p.y-1][p.x+dx]=1;
+ carve(entryTile.x-2,entryTile.y-2,5,5);
+ const flood=()=>{const q=[entryTile],dist=new Map([[entryTile.x+','+entryTile.y,0]]);for(let i=0;i<q.length;i++){const p=q[i],d=dist.get(p.x+','+p.y);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const x=p.x+dx,y=p.y+dy,k=x+','+y;if(tiles[y]?.[x]===0&&!dist.has(k)){dist.set(k,d+1);q.push({x,y})}}}return {q,dist}};
+ let connected=flood();const far=connected.q.sort((a,b)=>connected.dist.get(b.x+','+b.y)-connected.dist.get(a.x+','+a.y))[0];carve(far.x-3,far.y-3,7,7);connected=flood();for(let y=1;y<height-1;y++)for(let x=1;x<width-1;x++)if(tiles[y][x]===0&&!connected.dist.has(x+','+y))tiles[y][x]=1;
+ const point=p=>({x:p.x*32+16,y:p.y*32+16}),exit=point(entryTile),near=connected.q.filter(p=>Math.hypot(p.x-entryTile.x,p.y-entryTile.y)<=2.1&&Math.hypot(p.x-entryTile.x,p.y-entryTile.y)>=1.4).sort((a,b)=>connected.dist.get(b.x+','+b.y)-connected.dist.get(a.x+','+a.y)),entry=point(near[0]||entryTile),boss=point(far),open=connected.q.filter(p=>Math.hypot(p.x-entryTile.x,p.y-entryTile.y)>6&&Math.hypot(p.x-far.x,p.y-far.y)>3).map(point);for(let i=open.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[open[i],open[j]]=[open[j],open[i]]}
+ const chosen=[];for(const p of open)if(chosen.every(q=>Math.hypot(q.x-p.x,q.y-p.y)>62)){chosen.push(p);if(chosen.length>=6+Math.min(36,12+tier*3))break}const treasureCount=4+Math.floor(tier/2),enemyPoints=chosen.slice(treasureCount),names=['Harrowtine','Nacrecoil','Orrusk the Hollow Bell','Veliscreed','Caldrath'];
+ const enemies=enemyPoints.map((p,i)=>{const type=theme.roster[Math.floor(r()*theme.roster.length)],hp=ENEMY_BOOK[type].hp;return{...p,type,name:ENEMY_BOOK[type].name,hp,maxHp:hp,baseCombatHp:hp,phase:r()*6.28,id:i,dungeonRank:tier}});enemies.push({...boss,type:'boss',name:names[ch],hp:18+ch*4,maxHp:18+ch*4,baseCombatHp:18+ch*4,phase:0,id:enemies.length,dungeonRank:tier});
+ const decor=connected.q.filter(p=>Math.hypot(p.x-entryTile.x,p.y-entryTile.y)>4&&((p.x*71+p.y*43+seed)>>>0)%19===0).slice(0,36).map(p=>({...point(p),kind:['roots','coral','rubble','urn','bones'][ch]}));
+ return {faunaVersion:2,tiles,items:chosen.slice(0,treasureCount).map(p=>({...p,type:'chest',taken:false})),enemies,dungeon:{version:DUNGEON_VERSION,name:theme.name,theme:ch,shape:theme.shape,level,tier,side,entry,exit,rooms,decor,layoutId:seed+':'+ch+':'+tier}};
+}
+export function refreshedDungeon(seed,ch,level,old,bossDown=false){const fresh=dungeonFor(seed,ch,level);if(old){for(let i=0;i<fresh.items.length;i++)if(old.items?.[i]?.taken)fresh.items[i].taken=true;const dead=(old.enemies||[]).filter(e=>e.type!=='boss'&&e.hp<=0).length;for(let i=0;i<Math.min(dead,fresh.enemies.length-1);i++)fresh.enemies[i].hp=0;const oldBoss=old.enemies?.find(e=>e.type==='boss');if(bossDown||oldBoss?.hp<=0)fresh.enemies.at(-1).hp=0;}else if(bossDown)fresh.enemies.at(-1).hp=0;return fresh}
