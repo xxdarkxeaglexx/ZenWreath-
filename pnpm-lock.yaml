@@ -80,6 +80,9 @@ importers:
       tailwind-merge:
         specifier: 3.6.0
         version: 3.6.0
+      three:
+        specifier: 0.180.0
+        version: 0.180.0
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -87,12 +90,6 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
-      esbuild:
-        specifier: 0.28.0
-        version: 0.28.0
-      postcss:
-        specifier: 8.5.23
-        version: 8.5.23
       '@cloudflare/vite-plugin':
         specifier: 1.37.1
         version: 1.37.1(@types/node@22.19.19)(vite@8.0.13(@types/node@22.19.19)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.47.1)(tsx@4.22.1))(workerd@1.20260515.1)(wrangler@4.92.0(@cloudflare/workers-types@4.20260515.1)(@types/node@22.19.19))
@@ -120,6 +117,9 @@ importers:
       drizzle-kit:
         specifier: 0.31.10
         version: 0.31.10
+      esbuild:
+        specifier: 0.28.0
+        version: 0.28.0
       eslint:
         specifier: 9.39.4
         version: 9.39.4(jiti@2.7.0)(supports-color@10.2.2)
@@ -129,6 +129,9 @@ importers:
       json-rpc-2.0:
         specifier: 1.7.1
         version: 1.7.1
+      postcss:
+        specifier: 8.5.23
+        version: 8.5.23
       raw-body:
         specifier: 3.0.2
         version: 3.0.2
@@ -4491,6 +4494,9 @@ packages:
     resolution: {integrity: sha512-tPbLXTI6ohPASb/1YViL428oEHu6/qv1OxqYnfaonVCFHqx4+wCd95pHrQWsL5X4pl90CTyW9piSAsS2L0VoMw==}
     engines: {node: '>=10'}
     hasBin: true
+
+  three@0.180.0:
+    resolution: {integrity: sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==}
 
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
@@ -8908,6 +8914,8 @@ snapshots:
       acorn: 8.16.0
       commander: 2.20.3
       source-map-support: 0.5.21
+
+  three@0.180.0: {}
 
   tiny-inflate@1.0.3: {}
 

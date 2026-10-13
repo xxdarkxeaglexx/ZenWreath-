@@ -13,3 +13,13 @@ const studioHouseBase=paintVillageHouse;
 paintVillageHouse=function(c,kind,time=anim){studioHouseBase(c,kind,time);c.save();c.lineWidth=.65;c.strokeStyle='#fff0cf70';c.beginPath();c.moveTo(-50,-64);c.lineTo(0,-113);c.lineTo(20,-129);c.lineTo(70,-80);c.stroke();c.strokeStyle='#0e22364a';c.lineWidth=1.2;c.beginPath();c.moveTo(43,-1);c.lineTo(43,-61);c.stroke();c.restore()};
 const studioGearBase=paintKeeperEquipment;
 paintKeeperEquipment=function(c,look,dir,stride,pose={}){studioGearBase(c,look,dir,stride,pose);const type=pose.rpgWeapon||equippedWeapon().style;if(pose.hideBlade||!['leaf','brass','moon','spear','daggers','saw','hammer'].includes(type))return;const p=keeperWeaponPose(dir,stride,pose);c.save();c.translate(p.hand.x,p.hand.y);c.rotate(p.bladeAngle);const y=type==='spear'?-32:type==='hammer'?-24:type==='daggers'?-12:-22,pulse=.22+Math.sin(anim*1.4)**2*.23;c.globalAlpha=pulse;c.strokeStyle='#fff2d4';c.lineWidth=.65;c.beginPath();c.moveTo(-2,y);c.lineTo(2,y-3);c.stroke();c.restore()};
+
+// Load the optional presentation layer after every gameplay/art extension has
+// installed its wrappers. Both files are served locally and work offline.
+if(typeof document!=='undefined'){
+ const graphicsLayer=document.createElement('script');
+ graphicsLayer.src='/launch/v84/graphics-upgrade.js';
+ graphicsLayer.defer=true;
+ graphicsLayer.onload=()=>{const threeLayer=document.createElement('script');threeLayer.src='/launch/v84/three-renderer.bundle.js';document.body.append(threeLayer)};
+ document.body.append(graphicsLayer);
+}
